@@ -1,0 +1,34 @@
+{% extends "template_base.html" %}
+{% load menu_tags cms_tags sekizai_tags leaflet_tags %}
+{% block "js" %}
+   {% addtoblock "js" %}
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}shp/dist/shp.js"></script>
+        {% leaflet_js %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/leaflet.shpfile.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}leaflet-providers/leaflet-providers.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/leaflet.groupedlayercontrol.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}leaflet-search/dist/leaflet-search.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}bootstrap/dist/js/bootstrap.js"></script>
+   {% endaddtoblock %}
+{% endblock %}
+{% block "css" %}
+   {% addtoblock "css" %}
+	<link rel="stylesheet" href="{{ STATIC_URL }}leaflet.markercluster/dist/MarkerCluster.css" />
+	<link rel="stylesheet" href="{{ STATIC_URL }}leaflet.markercluster/dist/MarkerCluster.Default.css" />
+	<link rel="stylesheet" href="{{ STATIC_URL }}leaflet-search/dist/leaflet-search.min.css" />
+	<link rel="stylesheet" href="/static/css/leaflet.awesome-markers.css" />
+	<link rel="stylesheet" href="{{ STATIC_URL }}font_awesome/css/font-awesome.css" />
+	<link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/dist/css/bootstrap.min.css" />
+   {% leaflet_css %}
+   {% endaddtoblock %}
+{% endblock %}{% block base_content %}
+  <div id="gallery">
+  {% placeholder gallery %}
+  </div>
+  <div id="atlas">
+  {% placeholder map %}
+  </div>
+{% endblock %}
+

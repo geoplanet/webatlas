@@ -1,0 +1,6 @@
+.pyc
+staticfiles
+media
+.DS_Store
+static
+bower_components

@@ -1,0 +1,73 @@
+{% load cms_tags sekizai_tags leaflet_tags %}
+<html>
+  <head>
+{% leaflet_js %}
+{% leaflet_css %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/static/js/shp.js"></script> 
+<script src="/static/js/leaflet.shpfile.js"></script> 
+<script src="/static/js/leaflet-providers.js"></script>
+<script src="/static/js/leaflet.markercluster-src.js"></script>
+<script src="/static/js/leaflet.awesome-markers.js"></script>
+<script src="/static/twitter_bootstrap/dist/js/bootstrap.js"></script>
+<link rel="stylesheet" href="/static/css/MarkerCluster.css" />
+<link rel="stylesheet" href="/static/css/MarkerCluster.Default.css" />
+<link rel="stylesheet" href="/static/css/leaflet.awesome-markers.css" />
+<link rel="stylesheet" href="/static/font_awesome/css/font-awesome.css" />
+<link rel="stylesheet" href="/static/twitter_bootstrap/dist/css/bootstrap.min.css" />
+<style>
+  .leaflet-container {height: 600px; width: 600px;}
+</style>
+{% render_block "css" %}
+</head>
+  <body>
+   {% leaflet_map "lmap" callback="main_init_function" %}
+   {% placeholder "base_content" %}
+   {% block base_content %}{% endblock %}
+   {% render_block "js" %}
+<script type="text/javascript">
+   function main_init_function (map, options) {
+
+    	var defaultLayer = L.tileLayer.provider('Stamen.Watercolor').addTo(map);
+	var baseLayers = {'Base':defaultLayer};
+    	var dataurl = '{% url "data" %}';
+        var markerCluster =  L.markerClusterGroup({ spiderfyOnMaxZoom: false, showCoverageOnHover: true, zoomToBoundsOnClick: false, disableClusteringAtZoom: 10  });        
+	 var redMarker = L.AwesomeMarkers.icon({icon: 'glass', iconColor: '#ff0000', markerColor : 'orange'});
+        var blueMarker = L.AwesomeMarkers.icon({icon: 'glyphicon-tint', iconColor: '#0000ff'});
+        var fooMarker = L.AwesomeMarkers.icon({icon: 'glyphicon-map-marker' , iconColor: '#00ff00'});	
+
+        $.getJSON(dataurl, function (data) {
+	    	var markers = L.geoJson(data, {
+                      pointToLayer: function(feature, latlng) {
+                        switch(feature.properties.place_type){
+                        case 'Mountain':
+                                return L.marker(latlng,{icon: redMarker});
+                        case 'Lake':
+                                return L.marker(latlng, {icon: blueMarker});
+                        default:
+                                return L.marker(latlng, {icon: fooMarker});
+                                }
+                        } ,			
+			onEachFeature: onEachFeature 
+		     });
+//        map.addLayer(markers);
+   	map.fitBounds(markers.getBounds());
+		});
+        var overLayers = {'Clusters':markerCluster};
+ 
+  function onEachFeature(feature, layer){
+       layer.on('mouseover', function(e) {
+          e.target.bindPopup("Other Name: <b>"+ feature.properties.other_name +"</b></br>Place Type: <b>"+ feature.properties.place_type + "</b>").openPopup();
+        });
+        markerCluster.addLayer(layer);
+        markerCluster.on('clusterclick', function (a) {a.layer.spiderfy(); });
+
+        map.addLayer(markerCluster);
+        
+} 
+ var layerControl = L.control.layers(baseLayers, overLayers, {collapsed: false}).addTo(map);
+
+}
+</script>
+ </body>
+</html>

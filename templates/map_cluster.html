@@ -1,0 +1,55 @@
+{% load leaflet_tags %}
+<html>
+  <head>
+    {% leaflet_js %}
+    {% leaflet_css %}
+<link rel="stylesheet" href="/static/MarkerCluster.css" />
+<link rel="stylesheet" href="/static/MarkerCluster.Default.css" />
+<script src="/static/leaflet.markercluster-src.js"></script>
+<script src="/static/Google.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="http://maps.google.com/maps/api/js?v=3&sensor=false"></script>
+    <style>
+        .leaflet-container { height: 100%; }
+        .leaflet-map-pane { 
+          z-index: 2 |important;
+         }
+        .leaflet-google-layer {
+         opacity : 0.5;
+         z-index: 1 |important;
+         }
+    </style>
+  </head>
+  <body>
+    <h1>Django-Leaflet</h1>
+      {% leaflet_map "main" callback="main_map_init" %}
+    <script type="text/javascript">
+        function main_map_init (map, options) {
+          var dataurl = '{% url "data" %}';
+          var markers = L.markerClusterGroup({ spiderfyOnMaxZoom: false, showCoverageOnHover: true, zoomToBoundsOnClick: false });
+          // Download GeoJSON via Ajax
+          $.getJSON(dataurl, function (data) {
+            // Add GeoJSON layer   
+            var baselayer = L.geoJson(data, {
+                 onEachFeature : function (feature, layer)
+                        {
+                        layer.bindPopup("SaveThePeel");
+                        markers.addLayer(layer);
+                        }
+                 });
+          map.fitBounds(markers.getBounds());
+          markers.on('clusterclick', function (a) {
+                   a.layer.spiderfy();
+              });
+          
+          var ggl = new L.Google();
+          map.addLayer(ggl,true);
+//          map.addLayer(baselayer);
+          map.addLayer(markers);
+	   map.addControl(new L.Control.Layers({'Google':ggl},{'ClusterMarkers':markers,'Markers': baselayer}));
+         });   
+       }
+    </script>
+    
+  </body>
+</html>

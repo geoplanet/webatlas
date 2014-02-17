@@ -1,0 +1,23 @@
+{% load cms_tags menu_tags leaflet_tags sekizai_tags %}
+<html>
+  <head>  
+{% block "js" %}{% endblock %}
+  {% render_block "js" %}
+   {% leaflet_css %}
+   {% render_block "css" %}
+   {% block "css" %}{% endblock %}
+  </head>
+  <body>
+
+<span class="title" >Vuntut Gwitchin Heritage Atlas </span><br />
+  {% show_menu 0 100 100 100 %}
+<div id="header" class="banner">
+<img src="http://www.nypc.planyukon.ca/templates/ja_purity/images/header/header2.jpg" /><br />
+</div>
+  {% placeholder base_content %}
+  {% block base_content %}
+  {% endblock %}
+  </body>
+</html>
+
+

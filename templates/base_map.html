@@ -1,0 +1,37 @@
+{% load cms_tags sekizai_tags leaflet_tags %}
+<head>
+        <title>Leaflet Plugin</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        {% leaflet_js %}
+        {% leaflet_css %}
+        <link rel="stylesheet" href="/static/css/MarkerCluster.css" />
+        <link rel="stylesheet" href="/static/css/MarkerCluster.Default.css" />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+        {% render_block "css" %}
+</head>
+<body>
+	{% leaflet_map "map" callback="main_init_function" %}
+        <script src="/static/js/leaflet-providers.js"></script>
+        <script src="/static/js/leaflet.markercluster-src.js"></script>
+        <script type="text/javascript">
+        function main_init_function (map, options){
+                var defaultLayer = L.tileLayer.provider('Stamen.Watercolor').addTo(map);
+		var baseLayers = {'Stamen Watercolor': defaultLayer };	
+	}
+
+        function resizeLayerControl() {
+                var layerControlHeight = document.body.clientHeight - (10 + 50);
+                var layerControl = document.getElementsByClassName('leaflet-control-layers-expanded')[0];
+
+                layerControl.style.overflowY = 'auto';
+                layerControl.style.maxHeight = layerControlHeight + 'px';
+        }
+//        L.control.layers.provided(baseLayers, overlayLayers, {collapsed: false}).addTo(map);
+//        map.on('resize', resizeLayerControl);
+//        resizeLayerControl();
+        </script>
+        {% render_block "js" %}
+</body>
+</html>

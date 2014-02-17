@@ -1,0 +1,112 @@
+{% load leaflet_tags %}
+<style>
+  .leaflet-container {height: 600px; width: 600px;}
+.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+.info h4 {
+    margin: 0 0 5px;
+    color: #777;
+}
+</style>
+<div id="map" class="map"></div>
+<div id="container" class="sidebar">
+{% load thumbnail %}
+    <img src="{% thumbnail picture.image 300x600 %}"{% if picture.alt %} alt="{{ picture.alt }}"{% endif %} />
+</div>
+<script type="text/javascript" >
+
+         var map = L.map('map', {
+                        center: [66, -145],
+                        zoom: 5,
+                        maxZoom: 20,
+                        zoomControl: false
+                });
+
+   	var zoomControl = L.control.zoom ().addTo(map);
+	var RedIcon = L.Icon.extend({
+          options: {
+            	    iconUrl: '/static/css/images/location-marker.png',
+		    iconSize: [30,30] }
+         });
+        var redIcon = new RedIcon;
+	var myIcon = L.divIcon({html: '<i class="fa fa-map-marker" style="color:darkgreen;"></i>'});
+
+
+	var info = L.control();
+     	info.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+            this.update();
+            return this._div;
+                };
+
+	info.update= function(props) {
+	this._div.innerHTML = '<h4>Vuntut Gwitchin Heritage Places</h4><br />' + (props ?
+		'<br /><b>' + props.other_name + '</b><br />' : 'Hover over a state');
+                };
+	info.addTo(map);
+
+	var defaultLayer = L.tileLayer.provider('Stamen.Watercolor',{ maxZoom:12}).addTo(map);
+
+   	var dataurl = '{{ object.dataurl }}';
+
+        var markerCluster =  L.markerClusterGroup({ spiderfyOnMaxZoom: false, showCoverageOnHover: true, zoomToBoundsOnClick: false, disableClusteringAtZoom: 10  });        
+	
+	var mylayer;
+
+	function highlightFeature (e){
+		var layer = e.target;
+        	info.update(layer.feature.properties);
+	}
+
+               
+        function resetHighlight(e) {
+            mylayer.resetStyle(e.target);
+        }
+
+       function zoomToFeature(e) {
+		var layer = e.target;
+		var lonlat = Array(layer.feature.geometry.coordinates[1],layer.feature.geometry.coordinates[0]);
+               // alert (lonlat);
+ 	        map.setView(lonlat,10);
+	}
+
+	function onEachFeature(feature, layer){
+
+	        var image = '<iframe src="http://www.gistek.dk/udvikling/amcharts/test.html" width="300" height="300" frameborder="0"></iframe>'
+                    
+        	var popupContent = image;    
+            
+	        layer.bindPopup(popupContent, {autopan: true});
+
+	      	markerCluster.on('clusterclick', function (a) {a.layer.spiderfy(); });
+        	markerCluster.addLayer(layer);        
+        	map.addLayer(markerCluster);
+
+	       	layer.on({
+			mouseover: highlightFeature, 
+			mouseout:resetHighlight,
+		});
+
+	}
+
+        $.getJSON(dataurl, function (data) {
+	    	mylayer = L.geoJson(data, {
+                      pointToLayer: function(feature, latlng) {
+                                	return L.marker(latlng,{icon: redIcon});
+                        	    }, 
+ 			onEachFeature: onEachFeature
+	});
+
+   map.fitBounds(mylayer.getBounds());
+ 
+});
+
+
+
+</script>

@@ -1,0 +1,259 @@
+{% load cms_tags sekizai_tags leaflet_tags %}
+<html>
+  <head>
+{% leaflet_js %}
+{% leaflet_css %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/static/js/shp.js"></script> 
+<script src="/static/js/leaflet.shpfile.js"></script> 
+<script src="/static/js/leaflet-providers.js"></script>
+<script src="/static/js/leaflet.markercluster-src.js"></script>
+<script src="/static/js/leaflet.awesome-markers.js"></script>
+<script src="/static/twitter_bootstrap/dist/js/bootstrap.js"></script>
+<script src="/static/js/leaflet.groupedlayercontrol.js"></script>
+<link rel="stylesheet" href="/static/css/MarkerCluster.css" />
+<link rel="stylesheet" href="/static/css/MarkerCluster.Default.css" />
+<link rel="stylesheet" href="/static/css/leaflet.awesome-markers.css" />
+<link rel="stylesheet" href="/static/font_awesome/css/font-awesome.css" />
+<link rel="stylesheet" href="/static/twitter_bootstrap/dist/css/bootstrap.min.css" />
+<style>
+body {
+background-color: black;
+}
+  .leaflet-container {height: 600px; width: 1000px;}
+
+.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+.info h4 {
+    margin: 0 0 5px;
+    color: #777;
+}
+</style>
+{% render_block "css" %}
+</head>
+  <body>
+   {% leaflet_map "lmap" callback="main_init_function" %}
+   {% placeholder "base_content" %}
+   {% block base_content %}{% endblock %}
+   {% render_block "js" %}
+
+<script type="text/javascript">
+   function main_init_function (map, options) {
+
+        var redMarker = L.AwesomeMarkers.icon({icon: 'glyphicon-chevron-up', iconColor: '#ffffff', markerColor : 'darkgreen'});
+        var blueMarker = L.AwesomeMarkers.icon({icon: 'glyphicon-tint', iconColor: '#0000ff'});
+        var RedIcon = L.Icon.extend({
+          options: {
+            	    iconUrl: '/static/css/images/location-marker.png',
+		    iconSize: [30,30] }
+         });
+        var GreenIcon = L.Icon.extend({
+            options: {
+                    iconUrl: '/static/css/images/green-icon.png',  
+                    iconSize: [30,30] }
+         });
+
+	var myIcon = L.divIcon({html: '<i class="fa fa-user fa-2x"></i>'});
+
+        var BlueIcon = L.Icon.extend({
+            options: {
+                    iconUrl: '/static/css/images/blue-marker.png',
+                    iconSize: [30,30] }
+         });
+         var redIcon = new RedIcon();          
+         var greenIcon = new GreenIcon();          
+         var blueIcon = new BlueIcon();          
+
+        var fooMarker = L.AwesomeMarkers.icon({icon: 'map-marker' ,markerColor:'orange', iconColor: '#ffffff'});
+        var eyeMarker = L.AwesomeMarkers.icon({icon: 'user' ,markerColor:'red', iconColor: '#000000'});
+
+	var defaultLayer = L.tileLayer.provider('Stamen.Watercolor',{ maxZoom:7 }).addTo(map);
+        var defaultZoomLayer = L.tileLayer.provider('Esri.WorldImagery',{ minZoom:7, maxzoom:11 }).addTo(map);
+
+   	var hydro_layer = L.tileLayer.wms("http://ows.geobase.ca/wms/geobase_en?service=wms", {
+                layers: 'nhn:hydrography,nhn:toponyms',
+                format: 'image/png',
+                transparent: true,
+                reuseTiles: true,
+                unloadInvisibleTiles: false,
+                attribution: "Geobase © Minister of Natural Resources Canada"
+        }).addTo(map);
+
+
+	var hydro_ref = L.tileLayer.wms("http://ows.geobase.ca/wms/geobase_en?service=wms", {
+    		layers: 'reference:hydro',
+    		format: 'image/png',
+    		transparent: true,
+                reuseTiles: true,
+                unloadInvisibleTiles: false,
+    		attribution: "Geobase © Minister of Natural Resources Canada"
+	}).addTo(map);
+
+        var transport_layer  = L.tileLayer.wms("http://ows.geobase.ca/wms/geobase_en?service=wms", {
+                layers: 'nrn:roadnetwork,nrwn:track',
+                format: 'image/png',
+                transparent: true,
+                reuseTiles: true,
+                unloadInvisibleTiles: false,
+                attribution: "Geobase © Minister of Natural Resources Canada"
+        }).addTo(map);
+
+        var pol_boundary = L.tileLayer.wms("http://ows.geobase.ca/wms/geobase_en?service=wms", {
+                layers: 'boundaries:geopolitical',
+                format: 'image/png',
+                transparent: true,
+                reuseTiles: true,
+                unloadInvisibleTiles: false,
+                attribution: "Geobase © Minister of Natural Resources Canada"
+        }).addTo(map);
+
+        var places = L.tileLayer.wms("http://ows.geobase.ca/wms/geobase_en?service=wms", {
+                layers: 'reference:placenames',
+                format: 'image/png',
+                transparent: true,
+                reuseTiles: true,
+                unloadInvisibleTiles: false,
+                attribution: "Geobase © Minister of Natural Resources Canada"
+        }).addTo(map);
+
+
+        var fn_sett_land = L.tileLayer.wms("http://ows.geobase.ca/wms/geobase_en?service=wms", {
+                layers: 'boundaries:aboriginal',
+                format: 'image/png',
+                transparent: true,
+                reuseTiles: true,
+                unloadInvisibleTiles: false,
+                attribution: "Geobase © Minister of Natural Resources Canada"
+        }).addTo(map);
+
+        var usnatmap = L.tileLayer.wms("http://basemap.nationalmap.gov/arcgis/services/USGSHydroNHD/MapServer/WmsServer?", {
+                layers: 'USGSHydroNHD',
+                format: 'image/png',
+                transparent: true,
+                reuseTiles: true,
+                unloadInvisibleTiles: false,
+                attribution: "USGS Hydrography Dataset (NHD)Geob"
+        }).addTo(map);
+
+//        var overLayers = {'ESRI Imagery': defaultZoomLayer, 'Hydrography':hydro_base, 'Cluster':markerCluster,'Heritage Places':heritage_layer};
+//        var layerControl = L.control.groupedLayers(baseLayers, groupedOverLays, {collapsed: false}).addTo(map);
+
+
+//	var trails_2013 = new L.Shapefile('/media/data/2013/VGFN_Tracks_2013',{onEachFeature:onEachFeature}).addTo(map);
+
+
+   	var dataurl = '{% url "data" %}';
+        var markerCluster =  L.markerClusterGroup({ spiderfyOnMaxZoom: false, showCoverageOnHover: true, zoomToBoundsOnClick: false, disableClusteringAtZoom: 10  });        
+
+	var routes = new L.Shapefile('/media/data/2012/Crow_Flats_tracks').addTo(map);
+
+        $.getJSON(dataurl, function (data) {
+	    	var heritage_layer = L.geoJson(data, {
+			
+                      pointToLayer: function(feature, latlng) {
+                        switch(feature.properties.place_type){
+                        case 'Lake':
+			case 'lake':
+			case 'River':
+			case 'river':
+			case 'creek':
+                                return L.marker(latlng,{icon: myIcon});
+                        case 'Mountain':
+			case 'mountain':
+			case 'Hill':
+                                return L.marker(latlng, {icon: greenIcon});
+                        case 'Camp':
+			case 'camp':
+			case 'trail':
+			case 'Portage':
+			case 'portage':
+			case 'Route':
+                                return L.marker(latlng, {icon: eyeMarker});
+                        default:
+                                return L.marker(latlng, {icon: redIcon });
+                          }
+                        }, 
+ 			onEachFeature: onEachFeature
+		     });
+//        map.addLayer(heritage_layer);
+
+// Base layer control 
+	 var groupedOverlays = {
+   	"GeoBase": {
+                "Stamen Base": defaultLayer,
+		"<em>Hydrography</em>" : hydro_layer,
+		"Reference" : hydro_ref,
+		"Transport" : transport_layer,
+		"Boundaries" : pol_boundary,
+		"Placenames": places,
+		"First Nation Settlement Lands" : fn_sett_land,
+		"Routes": routes
+		},
+	   "Heritage Atlas": {
+		"Placenames</br><span style='padding-left:50px; color:red;'><i class='fa fa-user fa2x'></i></span>   Landmarks" : heritage_layer
+		}
+  	};
+
+
+   	map.fitBounds(heritage_layer.getBounds());
+	var baseLayers = {'Imagery': defaultZoomLayer};
+//        var overLayers = {'ESRI Imagery': defaultZoomLayer, 'Hydrography':hydro_base, 'Cluster':markerCluster,'Heritage Places':heritage_layer};
+        var layerControl = L.control.groupedLayers(baseLayers, groupedOverlays).addTo(map);
+        layerControl.setPosition('bottomright');
+
+// End of getJson call
+   });
+
+  function onEachFeature(feature, layer){
+       layer.on({click: zoomToFeature, mouseover: highlightFeature});
+        markerCluster.addLayer(layer);        
+      	markerCluster.on('clusterclick', function (a) {a.layer.spiderfy(); });
+//      markerCluster.on('click', zoomToFeature);
+        map.addLayer(markerCluster);
+
+	function highlightFeature (e){
+        	e.target.bindPopup("<b>"+ 
+        	feature.properties.other_name +"</b>").openPopup();
+	};
+
+	function zoomToFeature (e){
+		var lonlat = Array(feature.geometry.coordinates[1],feature.geometry.coordinates[0]);
+               // alert (lonlat);
+ 	        map.setView(lonlat,10);
+		info.update(layer.feature.properties);
+        };
+
+//End of onEachFeature
+  }
+
+        var info = L.control();
+
+        info.onAdd = function (map) {
+        this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+        this.update();
+        return this._div;
+        };
+
+// method that we will use to update the control based on feature properties passed
+
+        info.update = function (props) {
+        this._div.innerHTML = '<h4>Heritage Atlas</h4>' +  (props ?
+                '<b>Gwichin Place Name: </b>' + props.gwich_in_n + '<br /><b>Other Name:</b>' + props.other_name + '</br>' : 'Click on a pin');
+        };
+
+        info.addTo(map); 
+
+
+//End of map_init
+}
+
+
+</script>
+ </body>
+</html>
